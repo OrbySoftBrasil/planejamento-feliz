@@ -341,7 +341,7 @@ function Celula({
   );
 }
 
-function LinhaMobile({ momento, slot, onAbrir }: { momento: Momento; slot?: Slot; onAbrir: () => void }) {
+function LinhaMobile({ momento, slot, onAbrir }: { momento: Momento; slot?: Slot | undefined; onAbrir: () => void }) {
   return (
     <button
       onClick={onAbrir}
