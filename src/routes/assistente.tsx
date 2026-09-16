@@ -33,7 +33,7 @@ import {
   inicioDaSemana,
   nomeDia,
   professora,
-  turmaCriancas,
+  criancas,
   type Atividade,
 } from "@/data/mock";
 
@@ -92,7 +92,7 @@ function Assistente() {
     return {
       professora: professora.nome,
       turma: professora.turma,
-      criancas: turmaCriancas.length,
+      criancas: criancas.length,
       idade: "4 anos",
       ...(plano?.tema ? { temaMes: plano.tema } : {}),
       focosMes: plano?.focos ?? [],
@@ -154,7 +154,7 @@ function Assistente() {
     inputRef.current?.focus();
   }, [conversa?.id, pensando]);
 
-  function submeter(e: React.FormEvent) {
+  function submeter(_m: unknown, e: React.FormEvent) {
     e.preventDefault();
     const texto = rascunho.trim();
     if (!texto || pensando) return;
@@ -234,7 +234,7 @@ function Assistente() {
             <div className="min-w-0">
               <p className="truncate font-display font-semibold">{conversa?.titulo ?? "Conversa"}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {professora.turma} · {turmaCriancas.length} crianças de 4 anos
+                {professora.turma} · {criancas.length} crianças de 4 anos
               </p>
             </div>
           </header>
