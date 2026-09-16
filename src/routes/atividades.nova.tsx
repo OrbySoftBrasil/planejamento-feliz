@@ -33,7 +33,7 @@ function NovaAtividade() {
   const [tema, setTema] = useState("");
   const [duracao, setDuracao] = useState(30);
   const [objetivo, setObjetivo] = useState("");
-  const [materiais, setMateriais] = useState<string[]>([professora.materiais[0]]);
+  const [materiais, setMateriais] = useState<string[]>(professora.materiais.slice(0, 1));
 
   const parecidas = tema
     ? atividades
