@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssistenteRouteImport } from './routes/assistente'
+import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PlanejamentoRouteImport } from './routes/planejamento'
+import { Route as AtividadesIndexRouteImport } from './routes/atividades.index'
+import { Route as AtividadesIdRouteImport } from './routes/atividades.$id'
+import { Route as AtividadesNovaRouteImport } from './routes/atividades.nova'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssistenteRoute = AssistenteRouteImport.update({
+  id: '/assistente',
+  path: '/assistente',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanejamentoRoute = PlanejamentoRouteImport.update({
+  id: '/planejamento',
+  path: '/planejamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtividadesIndexRoute = AtividadesIndexRouteImport.update({
+  id: '/atividades/',
+  path: '/atividades/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtividadesIdRoute = AtividadesIdRouteImport.update({
+  id: '/atividades/$id',
+  path: '/atividades/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtividadesNovaRoute = AtividadesNovaRouteImport.update({
+  id: '/atividades/nova',
+  path: '/atividades/nova',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
+  '/calendario': typeof CalendarioRoute
+  '/perfil': typeof PerfilRoute
+  '/planejamento': typeof PlanejamentoRoute
+  '/atividades/$id': typeof AtividadesIdRoute
+  '/atividades/nova': typeof AtividadesNovaRoute
+  '/atividades/': typeof AtividadesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
+  '/calendario': typeof CalendarioRoute
+  '/perfil': typeof PerfilRoute
+  '/planejamento': typeof PlanejamentoRoute
+  '/atividades/$id': typeof AtividadesIdRoute
+  '/atividades/nova': typeof AtividadesNovaRoute
+  '/atividades': typeof AtividadesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assistente': typeof AssistenteRoute
+  '/calendario': typeof CalendarioRoute
+  '/perfil': typeof PerfilRoute
+  '/planejamento': typeof PlanejamentoRoute
+  '/atividades/$id': typeof AtividadesIdRoute
+  '/atividades/nova': typeof AtividadesNovaRoute
+  '/atividades/': typeof AtividadesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/assistente'
+    | '/calendario'
+    | '/perfil'
+    | '/planejamento'
+    | '/atividades/$id'
+    | '/atividades/nova'
+    | '/atividades/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/assistente'
+    | '/calendario'
+    | '/perfil'
+    | '/planejamento'
+    | '/atividades/$id'
+    | '/atividades/nova'
+    | '/atividades'
+  id:
+    | '__root__'
+    | '/'
+    | '/assistente'
+    | '/calendario'
+    | '/perfil'
+    | '/planejamento'
+    | '/atividades/$id'
+    | '/atividades/nova'
+    | '/atividades/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssistenteRoute: typeof AssistenteRoute
+  CalendarioRoute: typeof CalendarioRoute
+  PerfilRoute: typeof PerfilRoute
+  PlanejamentoRoute: typeof PlanejamentoRoute
+  AtividadesIdRoute: typeof AtividadesIdRoute
+  AtividadesNovaRoute: typeof AtividadesNovaRoute
+  AtividadesIndexRoute: typeof AtividadesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assistente': {
+      id: '/assistente'
+      path: '/assistente'
+      fullPath: '/assistente'
+      preLoaderRoute: typeof AssistenteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamento': {
+      id: '/planejamento'
+      path: '/planejamento'
+      fullPath: '/planejamento'
+      preLoaderRoute: typeof PlanejamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atividades/': {
+      id: '/atividades/'
+      path: '/atividades'
+      fullPath: '/atividades/'
+      preLoaderRoute: typeof AtividadesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atividades/$id': {
+      id: '/atividades/$id'
+      path: '/atividades/$id'
+      fullPath: '/atividades/$id'
+      preLoaderRoute: typeof AtividadesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atividades/nova': {
+      id: '/atividades/nova'
+      path: '/atividades/nova'
+      fullPath: '/atividades/nova'
+      preLoaderRoute: typeof AtividadesNovaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssistenteRoute: AssistenteRoute,
+  CalendarioRoute: CalendarioRoute,
+  PerfilRoute: PerfilRoute,
+  PlanejamentoRoute: PlanejamentoRoute,
+  AtividadesIdRoute: AtividadesIdRoute,
+  AtividadesNovaRoute: AtividadesNovaRoute,
+  AtividadesIndexRoute: AtividadesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
