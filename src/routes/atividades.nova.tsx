@@ -474,13 +474,14 @@ function FolhaEditor({
       <div className="mt-3 flex flex-wrap gap-2">
         {tiposFolha.map((t) => (
           <button
-            key={t}
-            onClick={() => onTipo(t)}
+            key={t.id}
+            onClick={() => onTipo(t.id)}
+            title={t.descricao}
             className={`rounded-full border px-3 py-1.5 text-sm ${
-              folha.tipo === t ? "border-primary bg-accent text-primary" : "border-border"
+              folha.tipo === t.id ? "border-primary bg-accent text-primary" : "border-border"
             }`}
           >
-            {rotulosFolha[t]}
+            {rotulosFolha[t.id]}
           </button>
         ))}
       </div>
