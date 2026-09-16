@@ -585,6 +585,29 @@ function Mes({ irParaSemana }: { irParaSemana: (inicio: string) => void }) {
         </button>
       </div>
 
+      <div className="no-print flex flex-wrap gap-2">
+        <Link
+          to="/plano-mes/$mes"
+          params={{ mes: esteMes }}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          Editar este mês
+        </Link>
+        <Link
+          to="/plano-mes/$mes"
+          params={{ mes: proximoMes }}
+          className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
+        >
+          <Plus className="h-4 w-4" /> Montar o próximo mês
+        </Link>
+        <Link
+          to="/plano-ano"
+          className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
+        >
+          Plano do ano
+        </Link>
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-5">
         <p className="text-sm text-muted-foreground">Projeto do mês</p>
         <h3 className="font-display text-2xl font-semibold">{plano.tema}</h3>
@@ -665,12 +688,19 @@ function Mes({ irParaSemana }: { irParaSemana: (inicio: string) => void }) {
 /* ------------------------------------------------------------------ ano */
 
 function Ano() {
+  const { planoAnual } = usePlanner();
   return (
     <div className="space-y-4">
       <div className="rounded-3xl border border-border bg-card p-5">
         <p className="text-sm text-muted-foreground">Projeto do ano · {planoAnual.ano}</p>
         <h3 className="font-display text-2xl font-semibold">{planoAnual.titulo}</h3>
         <p className="mt-2 text-sm text-muted-foreground">{planoAnual.intencao}</p>
+        <Link
+          to="/plano-ano"
+          className="no-print mt-4 inline-block rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          Criar e editar o plano do ano
+        </Link>
       </div>
       {planoAnual.bimestres.map((b) => (
         <div key={b.bimestre} className="rounded-2xl border border-border bg-card p-5">
