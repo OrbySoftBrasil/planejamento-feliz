@@ -70,7 +70,9 @@ function Assistente() {
       texto: contextoAgua
         ? `Oi, ${professora.nome}! Olhei sua semana: a sexta-feira (Dia da Água) está sem atividade principal. Quer que eu sugira uma proposta para as 18 crianças de 4 anos?`
         : `Oi, ${professora.nome}! Posso sugerir uma atividade, adaptar uma que você já tem ou olhar a sua semana. Por onde começamos?`,
-      nota: contextoAgua ? "Considerei o projeto do mês e os materiais da sua sala" : undefined,
+      ...(contextoAgua
+        ? { nota: "Considerei o projeto do mês e os materiais da sua sala" }
+        : {}),
     },
   ]);
   const fim = useRef<HTMLDivElement>(null);
@@ -95,7 +97,7 @@ function Assistente() {
   function sugerir() {
     setEtapa("proposta");
     conversar("Sim, por favor. Preciso de algo para o Dia da Água.", {
-      texto: `Pensei nesta proposta, seguindo o projeto "${projeto?.titulo ?? "Água e vida"}" e usando só materiais que você já tem na sala:`,
+      texto: `Pensei nesta proposta, seguindo o projeto "${projeto?.tema ?? "Água e vida"}" e usando só materiais que você já tem na sala:`,
       cartao: sugestaoAgua,
       nota: "Se quiser, eu encurto, troco os materiais ou deixo mais tranquila.",
     });
