@@ -30,7 +30,8 @@ export const Route = createFileRoute("/perfil")({
 });
 
 function Perfil() {
-  const { atividades, registros, slots, restaurarDemo } = usePlanner();
+  const { atividades, registros, slots, restaurarDemo, materiais, modeloEscola, atualizarModelo } =
+    usePlanner();
   const [confirmando, setConfirmando] = useState(false);
 
   const feitos = slots.filter((s) => s.status === "feito").length;
