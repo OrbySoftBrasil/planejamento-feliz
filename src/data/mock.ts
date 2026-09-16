@@ -52,6 +52,7 @@ export type Atividade = {
   criadaEm: string;
   origem: "minha" | "assistente" | "escola";
   favorita?: boolean;
+  folha?: Folha;
 };
 
 export type Registro = {
