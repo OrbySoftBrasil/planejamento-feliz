@@ -21,6 +21,7 @@ import { Route as AtividadesIndexRouteImport } from './routes/atividades.index'
 import { Route as AtividadesIdRouteImport } from './routes/atividades.$id'
 import { Route as AtividadesNovaRouteImport } from './routes/atividades.nova'
 import { Route as FolhaIdRouteImport } from './routes/folha.$id'
+import { Route as PlanoMesMesRouteImport } from './routes/plano-mes.$mes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,11 @@ const FolhaIdRoute = FolhaIdRouteImport.update({
   path: '/folha/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanoMesMesRoute = PlanoMesMesRouteImport.update({
+  id: '/plano-mes/$mes',
+  path: '/plano-mes/$mes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/atividades/$id': typeof AtividadesIdRoute
   '/atividades/nova': typeof AtividadesNovaRoute
   '/folha/$id': typeof FolhaIdRoute
+  '/plano-mes/$mes': typeof PlanoMesMesRoute
   '/atividades/': typeof AtividadesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/atividades/$id': typeof AtividadesIdRoute
   '/atividades/nova': typeof AtividadesNovaRoute
   '/folha/$id': typeof FolhaIdRoute
+  '/plano-mes/$mes': typeof PlanoMesMesRoute
   '/atividades': typeof AtividadesIndexRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/atividades/$id': typeof AtividadesIdRoute
   '/atividades/nova': typeof AtividadesNovaRoute
   '/folha/$id': typeof FolhaIdRoute
+  '/plano-mes/$mes': typeof PlanoMesMesRoute
   '/atividades/': typeof AtividadesIndexRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/atividades/$id'
     | '/atividades/nova'
     | '/folha/$id'
+    | '/plano-mes/$mes'
     | '/atividades/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/atividades/$id'
     | '/atividades/nova'
     | '/folha/$id'
+    | '/plano-mes/$mes'
     | '/atividades'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/atividades/$id'
     | '/atividades/nova'
     | '/folha/$id'
+    | '/plano-mes/$mes'
     | '/atividades/'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   AtividadesIdRoute: typeof AtividadesIdRoute
   AtividadesNovaRoute: typeof AtividadesNovaRoute
   FolhaIdRoute: typeof FolhaIdRoute
+  PlanoMesMesRoute: typeof PlanoMesMesRoute
   AtividadesIndexRoute: typeof AtividadesIndexRoute
 }
 
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FolhaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plano-mes/$mes': {
+      id: '/plano-mes/$mes'
+      path: '/plano-mes/$mes'
+      fullPath: '/plano-mes/$mes'
+      preLoaderRoute: typeof PlanoMesMesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   AtividadesIdRoute: AtividadesIdRoute,
   AtividadesNovaRoute: AtividadesNovaRoute,
   FolhaIdRoute: FolhaIdRoute,
+  PlanoMesMesRoute: PlanoMesMesRoute,
   AtividadesIndexRoute: AtividadesIndexRoute,
 }
 export const routeTree = rootRouteImport
