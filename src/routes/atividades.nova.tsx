@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { AgendarDialog } from "@/components/AgendarDialog";
+import { FolhaAtividade, rotulosFolha } from "@/components/FolhaAtividade";
+import { ilustracoes, type IlustracaoId } from "@/components/Ilustracoes";
 import {
   HOJE_ISO,
   camposExperiencia,
@@ -12,7 +14,10 @@ import {
   temas,
   type Atividade,
   type CampoExperiencia,
+  tiposFolha,
+  type Folha,
   type Momento,
+  type TipoFolha,
 } from "@/data/mock";
 import { usePlanner } from "@/lib/planner-store";
 
@@ -48,7 +53,7 @@ const materiaisComuns = [
 
 function Nova() {
   const navigate = useNavigate();
-  const { atividades, salvarAtividade } = usePlanner();
+  const { atividades, salvarAtividade, modeloEscola } = usePlanner();
   const [passo, setPasso] = useState(1);
   const [tema, setTema] = useState(temas[0] ?? "Água");
   const [campo, setCampo] = useState<CampoExperiencia>(camposExperiencia[0]!);
@@ -60,6 +65,10 @@ function Nova() {
   const [titulo, setTitulo] = useState("");
   const [objetivo, setObjetivo] = useState("");
   const [passos, setPassos] = useState<string[]>([]);
+  const [tipoFolha, setTipoFolha] = useState<TipoFolha>("colorir");
+  const [ilustracao, setIlustracao] = useState<IlustracaoId>("gotinha");
+  const [enunciado, setEnunciado] = useState("Pinte o desenho com as cores que você quiser.");
+  const [recado, setRecado] = useState("Converse em casa sobre o que você aprendeu hoje.");
   const [salva, setSalva] = useState<Atividade | null>(null);
   const [agendando, setAgendando] = useState(false);
 
@@ -114,6 +123,7 @@ function Nova() {
       origem: "minha",
       criadaEm: HOJE_ISO,
       favorita: false,
+      folha: { tipo: tipoFolha, ilustracao, enunciado, recado },
     };
     salvarAtividade(nova);
     setSalva(nova);
@@ -321,6 +331,34 @@ function Nova() {
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
               />
             </label>
+            <FolhaEditor
+              atividade={{
+                id: "previa",
+                titulo: titulo || "Sua atividade",
+                tema,
+                campo,
+                faixa: "4 anos",
+                duracao,
+                espaco,
+                organizacao,
+                materiais,
+                objetivo,
+                objetivosBncc: [],
+                passos,
+                adaptacoes: [],
+                tags: [],
+                origem: "minha",
+                criadaEm: HOJE_ISO,
+                favorita: false,
+              }}
+              folha={{ tipo: tipoFolha, ilustracao, enunciado, recado }}
+              modelo={modeloEscola}
+              onTipo={setTipoFolha}
+              onIlustracao={setIlustracao}
+              onEnunciado={setEnunciado}
+              onRecado={setRecado}
+            />
+
             <div>
               <p className="text-sm font-medium">Passo a passo</p>
               <div className="mt-2 space-y-2">
@@ -366,6 +404,12 @@ function Nova() {
                     Colocar no planejamento
                   </button>
                   <button
+                    onClick={() => navigate({ to: "/folha/$id", params: { id: salva.id } })}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold"
+                  >
+                    <Download className="h-4 w-4" /> Baixar a folha
+                  </button>
+                  <button
                     onClick={() => navigate({ to: "/atividades/$id", params: { id: salva.id } })}
                     className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold"
                   >
@@ -400,5 +444,78 @@ function Nova() {
         />
       ) : null}
     </AppShell>
+  );
+}
+
+function FolhaEditor({
+  atividade,
+  folha,
+  modelo,
+  onTipo,
+  onIlustracao,
+  onEnunciado,
+  onRecado,
+}: {
+  atividade: Atividade;
+  folha: Folha;
+  modelo: Parameters<typeof FolhaAtividade>[0]["modelo"];
+  onTipo: (t: TipoFolha) => void;
+  onIlustracao: (i: IlustracaoId) => void;
+  onEnunciado: (v: string) => void;
+  onRecado: (v: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-background p-4">
+      <p className="font-display text-base font-semibold">Folha da atividade</p>
+      <p className="text-xs text-muted-foreground">
+        É a folha ilustrada que as crianças recebem. Você pode baixar em PDF depois.
+      </p>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {tiposFolha.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => onTipo(t.id)}
+            title={t.descricao}
+            className={`rounded-full border px-3 py-1.5 text-sm ${
+              folha.tipo === t.id ? "border-primary bg-accent text-primary" : "border-border"
+            }`}
+          >
+            {rotulosFolha[t.id]}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {ilustracoes.map((i) => (
+          <button
+            key={i.id}
+            onClick={() => onIlustracao(i.id)}
+            className={`rounded-full border px-3 py-1.5 text-xs ${
+              folha.ilustracao === i.id ? "border-primary bg-accent text-primary" : "border-border"
+            }`}
+          >
+            {i.nome}
+          </button>
+        ))}
+      </div>
+
+      <input
+        value={folha.enunciado}
+        onChange={(e) => onEnunciado(e.target.value)}
+        placeholder="O que a criança deve fazer"
+        className="mt-3 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm"
+      />
+      <input
+        value={folha.recado}
+        onChange={(e) => onRecado(e.target.value)}
+        placeholder="Recado para a família"
+        className="mt-2 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm"
+      />
+
+      <div className="mt-4 overflow-hidden rounded-xl border border-border">
+        <FolhaAtividade atividade={atividade} folha={folha} modelo={modelo} />
+      </div>
+    </div>
   );
 }
