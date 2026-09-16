@@ -14,6 +14,7 @@ import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PlanejamentoRouteImport } from './routes/planejamento'
+import { Route as TurmaRouteImport } from './routes/turma'
 import { Route as AtividadesIndexRouteImport } from './routes/atividades.index'
 import { Route as AtividadesIdRouteImport } from './routes/atividades.$id'
 import { Route as AtividadesNovaRouteImport } from './routes/atividades.nova'
@@ -43,6 +44,11 @@ const PlanejamentoRoute = PlanejamentoRouteImport.update({
   path: '/planejamento',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TurmaRoute = TurmaRouteImport.update({
+  id: '/turma',
+  path: '/turma',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AtividadesIndexRoute = AtividadesIndexRouteImport.update({
   id: '/atividades/',
   path: '/atividades/',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/calendario': typeof CalendarioRoute
   '/perfil': typeof PerfilRoute
   '/planejamento': typeof PlanejamentoRoute
+  '/turma': typeof TurmaRoute
   '/atividades/$id': typeof AtividadesIdRoute
   '/atividades/nova': typeof AtividadesNovaRoute
   '/atividades/': typeof AtividadesIndexRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof CalendarioRoute
   '/perfil': typeof PerfilRoute
   '/planejamento': typeof PlanejamentoRoute
+  '/turma': typeof TurmaRoute
   '/atividades/$id': typeof AtividadesIdRoute
   '/atividades/nova': typeof AtividadesNovaRoute
   '/atividades': typeof AtividadesIndexRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/calendario': typeof CalendarioRoute
   '/perfil': typeof PerfilRoute
   '/planejamento': typeof PlanejamentoRoute
+  '/turma': typeof TurmaRoute
   '/atividades/$id': typeof AtividadesIdRoute
   '/atividades/nova': typeof AtividadesNovaRoute
   '/atividades/': typeof AtividadesIndexRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/perfil'
     | '/planejamento'
+    | '/turma'
     | '/atividades/$id'
     | '/atividades/nova'
     | '/atividades/'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/perfil'
     | '/planejamento'
+    | '/turma'
     | '/atividades/$id'
     | '/atividades/nova'
     | '/atividades'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/perfil'
     | '/planejamento'
+    | '/turma'
     | '/atividades/$id'
     | '/atividades/nova'
     | '/atividades/'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   CalendarioRoute: typeof CalendarioRoute
   PerfilRoute: typeof PerfilRoute
   PlanejamentoRoute: typeof PlanejamentoRoute
+  TurmaRoute: typeof TurmaRoute
   AtividadesIdRoute: typeof AtividadesIdRoute
   AtividadesNovaRoute: typeof AtividadesNovaRoute
   AtividadesIndexRoute: typeof AtividadesIndexRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanejamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/turma': {
+      id: '/turma'
+      path: '/turma'
+      fullPath: '/turma'
+      preLoaderRoute: typeof TurmaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/atividades/': {
       id: '/atividades/'
       path: '/atividades'
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarioRoute: CalendarioRoute,
   PerfilRoute: PerfilRoute,
   PlanejamentoRoute: PlanejamentoRoute,
+  TurmaRoute: TurmaRoute,
   AtividadesIdRoute: AtividadesIdRoute,
   AtividadesNovaRoute: AtividadesNovaRoute,
   AtividadesIndexRoute: AtividadesIndexRoute,
