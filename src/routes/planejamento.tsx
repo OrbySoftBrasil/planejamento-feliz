@@ -303,7 +303,7 @@ function Celula({
   onAbrir,
   onStatus,
 }: {
-  slot?: Slot;
+  slot?: Slot | undefined;
   onAbrir: () => void;
   onStatus: (id: string, s: Slot["status"]) => void;
 }) {
@@ -372,7 +372,7 @@ function EditorSlot({
 }: {
   data: string;
   momento: Momento;
-  slot?: Slot;
+  slot?: Slot | undefined;
   onFechar: () => void;
 }) {
   const { atividades, agendar, removerSlot, alterarStatus, anotarSlot, atividadePorId, registrosDaAtividade } =
