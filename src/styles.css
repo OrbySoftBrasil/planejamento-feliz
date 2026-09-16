@@ -152,6 +152,17 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+.dark {
+  --agua: oklch(0.7 0.12 235);
+  --agua-suave: oklch(0.32 0.05 235);
+  --folha: oklch(0.7 0.11 150);
+  --folha-suave: oklch(0.32 0.05 150);
+  --sol: oklch(0.78 0.13 78);
+  --sol-suave: oklch(0.33 0.05 85);
+  --coral: oklch(0.72 0.14 25);
+  --coral-suave: oklch(0.33 0.05 30);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -160,5 +171,22 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
   }
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-area {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}
+
