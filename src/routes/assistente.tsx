@@ -8,7 +8,7 @@ import { usePlanner } from "@/lib/planner-store";
 
 export const Route = createFileRoute("/assistente")({
   validateSearch: (search: Record<string, unknown>) => ({
-    tema: typeof search.tema === "string" ? search.tema : undefined,
+    tema: typeof search["tema"] === "string" ? (search["tema"] as string) : undefined,
   }),
   head: () => ({
     meta: [
