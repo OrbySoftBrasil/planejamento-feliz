@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssistenteRouteImport } from './routes/assistente'
 import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PlanejamentoRouteImport } from './routes/planejamento'
 import { Route as TurmaRouteImport } from './routes/turma'
@@ -32,6 +33,11 @@ const AssistenteRoute = AssistenteRouteImport.update({
 const CalendarioRoute = CalendarioRouteImport.update({
   id: '/calendario',
   path: '/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MateriaisRoute = MateriaisRouteImport.update({
+  id: '/materiais',
+  path: '/materiais',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assistente': typeof AssistenteRoute
   '/calendario': typeof CalendarioRoute
+  '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/planejamento': typeof PlanejamentoRoute
   '/turma': typeof TurmaRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assistente': typeof AssistenteRoute
   '/calendario': typeof CalendarioRoute
+  '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/planejamento': typeof PlanejamentoRoute
   '/turma': typeof TurmaRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/assistente': typeof AssistenteRoute
   '/calendario': typeof CalendarioRoute
+  '/materiais': typeof MateriaisRoute
   '/perfil': typeof PerfilRoute
   '/planejamento': typeof PlanejamentoRoute
   '/turma': typeof TurmaRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/assistente'
     | '/calendario'
+    | '/materiais'
     | '/perfil'
     | '/planejamento'
     | '/turma'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/assistente'
     | '/calendario'
+    | '/materiais'
     | '/perfil'
     | '/planejamento'
     | '/turma'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/assistente'
     | '/calendario'
+    | '/materiais'
     | '/perfil'
     | '/planejamento'
     | '/turma'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssistenteRoute: typeof AssistenteRoute
   CalendarioRoute: typeof CalendarioRoute
+  MateriaisRoute: typeof MateriaisRoute
   PerfilRoute: typeof PerfilRoute
   PlanejamentoRoute: typeof PlanejamentoRoute
   TurmaRoute: typeof TurmaRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/calendario'
       fullPath: '/calendario'
       preLoaderRoute: typeof CalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/materiais': {
+      id: '/materiais'
+      path: '/materiais'
+      fullPath: '/materiais'
+      preLoaderRoute: typeof MateriaisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssistenteRoute: AssistenteRoute,
   CalendarioRoute: CalendarioRoute,
+  MateriaisRoute: MateriaisRoute,
   PerfilRoute: PerfilRoute,
   PlanejamentoRoute: PlanejamentoRoute,
   TurmaRoute: TurmaRoute,
