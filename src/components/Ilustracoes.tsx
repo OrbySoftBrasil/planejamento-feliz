@@ -1,3 +1,5 @@
+import type { ReactElement, ReactNode } from "react";
+
 /* Ilustrações em traço (vetor) usadas nas folhas de atividade.
    Traço preto, sem preenchimento: dá para imprimir, colorir e baixar. */
 
@@ -13,14 +15,14 @@ export type IlustracaoId =
   | "regador"
   | "copo";
 
-type Props = { className?: string };
+type Props = { className: string };
 
 const svg = {
   width: "100%",
   height: "100%",
 } as const;
 
-function Base({ children, className }: { children: React.ReactNode; className?: string }) {
+function Base({ children, className }: { children: ReactNode; className: string }) {
   return (
     <svg
       viewBox="0 0 200 200"
@@ -38,7 +40,7 @@ function Base({ children, className }: { children: React.ReactNode; className?: 
   );
 }
 
-export const ilustracoes: { id: IlustracaoId; nome: string; desenho: (p: Props) => JSX.Element }[] = [
+export const ilustracoes: { id: IlustracaoId; nome: string; desenho: (p: Props) => ReactElement }[] = [
   {
     id: "gotinha",
     nome: "Gotinha",
@@ -168,5 +170,5 @@ export const ilustracoes: { id: IlustracaoId; nome: string; desenho: (p: Props) 
 
 export function Ilustracao({ id, className }: { id: IlustracaoId; className?: string }) {
   const item = ilustracoes.find((i) => i.id === id) ?? ilustracoes[0]!;
-  return item.desenho({ ...(className !== undefined ? { className } : {}) });
+  return item.desenho({ className: className ?? "" });
 }
