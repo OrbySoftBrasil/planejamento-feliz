@@ -54,8 +54,8 @@ function Nova() {
   const [campo, setCampo] = useState<CampoExperiencia>(camposExperiencia[0]!);
   const [duracao, setDuracao] = useState(30);
   const [momento, setMomento] = useState<Momento>("Atividade principal");
-  const [organizacao, setOrganizacao] = useState("Grupos pequenos");
-  const [espaco, setEspaco] = useState("Sala");
+  const [organizacao, setOrganizacao] = useState<Atividade["organizacao"]>("Pequenos grupos");
+  const [espaco, setEspaco] = useState<Atividade["espaco"]>("Sala");
   const [materiais, setMateriais] = useState<string[]>(["Papel sulfite"]);
   const [titulo, setTitulo] = useState("");
   const [objetivo, setObjetivo] = useState("");
@@ -111,7 +111,7 @@ function Nova() {
         `Se tiver menos tempo, faça só os dois primeiros passos (cerca de ${Math.max(15, duracao - 15)} min).`,
       ],
       tags: [tema.toLowerCase(), momento.toLowerCase()],
-      origem: "professora",
+      origem: "minha",
       criadaEm: HOJE_ISO,
       favorita: false,
     };
@@ -232,7 +232,7 @@ function Nova() {
               <div>
                 <p className="text-sm font-medium">Organização</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {["Grande grupo", "Grupos pequenos", "Duplas", "Individual"].map((o) => (
+                  {(["Turma toda", "Pequenos grupos", "Duplas", "Individual"] as const).map((o) => (
                     <button
                       key={o}
                       onClick={() => setOrganizacao(o)}
@@ -248,7 +248,7 @@ function Nova() {
               <div>
                 <p className="text-sm font-medium">Espaço</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {["Sala", "Pátio", "Parque", "Refeitório"].map((o) => (
+                  {(["Sala", "Pátio", "Parque", "Refeitório", "Corredor"] as const).map((o) => (
                     <button
                       key={o}
                       onClick={() => setEspaco(o)}
