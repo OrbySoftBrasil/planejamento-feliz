@@ -1,18 +1,15 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Clock, Info, MapPin, Printer, Send, Sparkles, Users } from "lucide-react";
-import { toast } from "sonner";
+import { Clock, Info, MapPin, Send, Sparkles, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AgendarDialog } from "@/components/AgendarDialog";
 import {
   campoCurto,
-  formatarLongo,
   planosMensais,
   professora,
   sugestaoAgua,
   type Atividade,
 } from "@/data/mock";
-import { usePlanner } from "@/lib/planner-store";
 
 export const Route = createFileRoute("/assistente")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -52,8 +49,6 @@ const proximoId = () => ++contador;
 
 function Assistente() {
   const { tema } = Route.useSearch();
-  const navigate = useNavigate();
-  const { salvarAtividade } = usePlanner();
   const contextoAgua = tema === "agua";
   const projeto = planosMensais.find((p) => p.mes === 3);
 
