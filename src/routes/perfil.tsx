@@ -53,10 +53,10 @@ function Perfil() {
       <div className="space-y-5">
         <section className="flex items-center gap-4 rounded-3xl border border-border bg-card p-5">
           <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-sol-suave font-display text-xl font-bold">
-            {professora.nome.slice(0, 2)}
+            {professora.iniciais}
           </span>
           <div className="min-w-0">
-            <p className="font-display text-xl font-semibold">{professora.nomeCompleto ?? professora.nome}</p>
+            <p className="font-display text-xl font-semibold">{professora.nome} {professora.sobrenome}</p>
             <p className="text-sm text-muted-foreground">
               {professora.turma} · {professora.criancas} crianças de {professora.idade}
             </p>
