@@ -52,6 +52,7 @@ export type Atividade = {
   criadaEm: string;
   origem: "minha" | "assistente" | "escola";
   favorita?: boolean;
+  folha?: Folha;
 };
 
 export type Registro = {
@@ -920,3 +921,66 @@ export const recados = [
 ];
 
 export const temas = Array.from(new Set(atividades.map((a) => a.tema))).sort();
+
+/* --------------------------------------------- folhas e modelo da escola */
+
+export type TipoFolha = "colorir" | "ligar" | "contar" | "recortar" | "tracado" | "desenho";
+
+export const tiposFolha: { id: TipoFolha; nome: string; descricao: string }[] = [
+  { id: "colorir", nome: "Colorir", descricao: "Desenho grande em traço para pintar." },
+  { id: "ligar", nome: "Ligar os pontos", descricao: "A criança liga os pares com um risco." },
+  { id: "contar", nome: "Contar e marcar", descricao: "Contar figuras e marcar a quantidade." },
+  { id: "recortar", nome: "Recortar e colar", descricao: "Linhas para recortar e montar." },
+  { id: "tracado", nome: "Traçado", descricao: "Caminhos pontilhados para treinar o traço." },
+  { id: "desenho", nome: "Desenho livre", descricao: "Um quadro grande para a criança desenhar." },
+];
+
+export type Folha = {
+  tipo: TipoFolha;
+  ilustracao: string;
+  enunciado: string;
+  recado?: string;
+};
+
+export type ModeloEscola = {
+  escola: string;
+  marcaDagua: string;
+  mostrarNome: boolean;
+  mostrarTurma: boolean;
+  mostrarData: boolean;
+  cor: "agua" | "sol" | "folha" | "coral";
+  rodape: string;
+  logoTexto: string;
+};
+
+export const modeloEscolaInicial: ModeloEscola = {
+  escola: "EMEI Vila das Flores",
+  marcaDagua: "EMEI VILA DAS FLORES",
+  mostrarNome: true,
+  mostrarTurma: true,
+  mostrarData: true,
+  cor: "agua",
+  rodape: "Educação Infantil · Pré-escola I · Prof.ª Ana Lúcia",
+  logoTexto: "VF",
+};
+
+/* ------------------------------------------------------------- materiais */
+
+export type ItemMaterial = {
+  id: string;
+  nome: string;
+  status: "tenho" | "preciso" | "comprado";
+  nota?: string;
+};
+
+export const materiaisIniciais: ItemMaterial[] = [
+  { id: "m1", nome: "Papel e giz de cera", status: "tenho" },
+  { id: "m2", nome: "Tinta guache", status: "tenho" },
+  { id: "m3", nome: "Copos e bacias plásticas", status: "tenho" },
+  { id: "m4", nome: "Sucata (garrafas, tampinhas)", status: "tenho", nota: "Pedir ajuda das famílias" },
+  { id: "m5", nome: "Caixa de som", status: "tenho" },
+  { id: "m6", nome: "Massinha caseira", status: "tenho" },
+  { id: "m7", nome: "Cola colorida", status: "preciso", nota: "Pedir na secretaria" },
+  { id: "m8", nome: "Papel crepom", status: "preciso" },
+  { id: "m9", nome: "Regadores e pazinhas", status: "tenho" },
+];

@@ -4,6 +4,9 @@ import {
   ArrowLeft,
   CalendarPlus,
   Clock,
+  Download,
+  Plus,
+  X,
   MapPin,
   Printer,
   Star,
@@ -51,6 +54,7 @@ function Detalhe() {
     registrosDaAtividade,
     registrar,
     alternarFavorita,
+    atualizarAtividade,
     slots,
   } = usePlanner();
   const atividade = atividadePorId(id);
@@ -123,6 +127,13 @@ function Detalhe() {
             >
               <CalendarPlus className="h-4 w-4" /> Colocar no planejamento
             </button>
+            <Link
+              to="/folha/$id"
+              params={{ id: atividade.id }}
+              className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
+            >
+              <Download className="h-4 w-4" /> Folha ilustrada e download
+            </Link>
             <button
               onClick={() => window.print()}
               className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold"
@@ -166,14 +177,47 @@ function Detalhe() {
         {aba === "Passo a passo" ? (
           <section className="space-y-4">
             <div className="rounded-2xl border border-border bg-card p-5">
-              <h2 className="font-display text-lg font-semibold">Materiais</h2>
-              <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-                {atividade.materiais.map((m) => (
-                  <li key={m} className="flex items-center gap-2 text-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" /> {m}
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="font-display text-lg font-semibold">Materiais</h2>
+                <Link to="/materiais" className="no-print text-xs font-semibold text-primary">
+                  Minha lista de materiais
+                </Link>
+              </div>
+              <ul className="mt-3 space-y-2">
+                {atividade.materiais.map((m, i) => (
+                  <li key={`${m}-${i}`} className="flex items-center gap-2 text-sm">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    <input
+                      value={m}
+                      onChange={(e) =>
+                        atualizarAtividade(atividade.id, {
+                          materiais: atividade.materiais.map((x, j) => (j === i ? e.target.value : x)),
+                        })
+                      }
+                      className="min-w-0 flex-1 bg-transparent outline-none"
+                    />
+                    <button
+                      onClick={() =>
+                        atualizarAtividade(atividade.id, {
+                          materiais: atividade.materiais.filter((_, j) => j !== i),
+                        })
+                      }
+                      aria-label="Remover material"
+                      className="no-print text-muted-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </li>
                 ))}
               </ul>
+              <button
+                onClick={() =>
+                  atualizarAtividade(atividade.id, { materiais: [...atividade.materiais, "Novo material"] })
+                }
+                className="no-print mt-3 inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold"
+              >
+                <Plus className="h-3.5 w-3.5" /> Adicionar material
+              </button>
             </div>
             <div className="rounded-2xl border border-border bg-card p-5">
               <h2 className="font-display text-lg font-semibold">Como conduzir</h2>

@@ -1,13 +1,39 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { Clock, Info, MapPin, Send, Sparkles, Users } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  CalendarPlus,
+  Clock,
+  Download,
+  MessageSquarePlus,
+  PanelLeft,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AgendarDialog } from "@/components/AgendarDialog";
 import {
-  campoCurto,
-  planosMensais,
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import {
+  PromptInput,
+  PromptInputFooter,
+  PromptInputSubmit,
+  PromptInputTextarea,
+} from "@/components/ai-elements/prompt-input";
+import { Shimmer } from "@/components/ai-elements/shimmer";
+import { responder, sugestoesIniciais, type Contexto } from "@/lib/assistente";
+import { usePlanner } from "@/lib/planner-store";
+import {
+  HOJE_ISO,
+  diasUteis,
+  formatarCurto,
+  inicioDaSemana,
+  nomeDia,
   professora,
-  sugestaoAgua,
+  criancas,
   type Atividade,
 } from "@/data/mock";
 
@@ -21,7 +47,7 @@ export const Route = createFileRoute("/assistente")({
       {
         name: "description",
         content:
-          "Converse para planejar, adaptar uma atividade à sua turma e salvar direto no planejamento da semana.",
+          "Converse em linguagem simples para planejar, adaptar uma atividade à sua turma e salvar direto no planejamento da semana.",
       },
       { property: "og:title", content: "Assistente · Planeja" },
       {
@@ -35,293 +61,313 @@ export const Route = createFileRoute("/assistente")({
   component: Assistente,
 });
 
-type Mensagem = {
-  id: number;
-  autor: "assistente" | "professora";
-  texto: string;
-  cartao?: Atividade;
-  nota?: string;
-};
-
-const DATA_AGUA = "2026-03-20";
-let contador = 0;
-const proximoId = () => ++contador;
-
 function Assistente() {
   const { tema } = Route.useSearch();
-  const contextoAgua = tema === "agua";
-  const projeto = planosMensais.find((p) => p.mes === 3);
+  const {
+    conversas,
+    criarConversa,
+    adicionarMensagem,
+    removerConversa,
+    renomearConversa,
+    carregado,
+    materiais,
+    planoDoMes,
+    slotsDaSemana,
+    salvarAtividade,
+  } = usePlanner();
 
-  const [proposta, setProposta] = useState<Atividade>(sugestaoAgua);
-  const [etapa, setEtapa] = useState<"inicio" | "proposta" | "salva">("inicio");
-  const [feitas, setFeitas] = useState<string[]>([]);
-  const [digitando, setDigitando] = useState(false);
-  const [texto, setTexto] = useState("");
-  const [salvando, setSalvando] = useState(false);
-  const [mensagens, setMensagens] = useState<Mensagem[]>([
-    {
-      id: proximoId(),
-      autor: "assistente",
-      texto: contextoAgua
-        ? `Oi, ${professora.nome}! Olhei sua semana: a sexta-feira (Dia da Água) está sem atividade principal. Quer que eu sugira uma proposta para as 18 crianças de 4 anos?`
-        : `Oi, ${professora.nome}! Posso sugerir uma atividade, adaptar uma que você já tem ou olhar a sua semana. Por onde começamos?`,
-      ...(contextoAgua
-        ? { nota: "Considerei o projeto do mês e os materiais da sua sala" }
-        : {}),
-    },
-  ]);
-  const fim = useRef<HTMLDivElement>(null);
+  const [conversaId, setConversaId] = useState<string | null>(null);
+  const [rascunho, setRascunho] = useState("");
+  const [pensando, setPensando] = useState(false);
+  const [agendando, setAgendando] = useState<Atividade | null>(null);
+  const [listaAberta, setListaAberta] = useState(false);
+  const iniciou = useRef(false);
 
+  const conversa = conversas.find((c) => c.id === conversaId) ?? conversas[0];
+
+  const contexto: Contexto = useMemo(() => {
+    const inicio = inicioDaSemana(HOJE_ISO);
+    const daSemana = slotsDaSemana(inicio);
+    const plano = planoDoMes(3, 2026);
+    return {
+      professora: professora.nome,
+      turma: professora.turma,
+      criancas: criancas.length,
+      idade: "4 anos",
+      ...(plano?.tema ? { temaMes: plano.tema } : {}),
+      focosMes: plano?.focos ?? [],
+      diasSemAtividade: diasUteis(inicio)
+        .filter((d) => !daSemana.some((s) => s.data === d && s.momento === "Atividade principal"))
+        .map((d) => ({ data: d, rotulo: `${nomeDia(d)}, ${formatarCurto(d)}` })),
+      materiaisFaltando: materiais.filter((m) => m.status === "preciso").map((m) => m.nome),
+      proximosEventos: [],
+      particularidades: professora.particularidades,
+    };
+  }, [materiais, planoDoMes, slotsDaSemana]);
+
+  // primeira conversa (idempotente)
   useEffect(() => {
-    fim.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [mensagens, digitando]);
+    if (!carregado || iniciou.current) return;
+    iniciou.current = true;
+    if (conversas.length === 0) {
+      const nova = criarConversa("Primeira conversa");
+      setConversaId(nova.id);
+      adicionarMensagem(nova.id, {
+        autor: "assistente",
+        texto: `Oi, ${professora.nome}! 👋\n\nSou seu assistente de planejamento. Pode escrever do jeito que você falaria com uma colega.\n\nPosso sugerir atividades, adaptar o que você já tem, montar o plano do mês e preparar folhas para imprimir.`,
+      });
+    } else {
+      setConversaId(conversas[0]?.id ?? null);
+    }
+  }, [carregado, conversas, criarConversa, adicionarMensagem]);
 
-  function conversar(daProfessora: string, resposta: Omit<Mensagem, "id" | "autor">) {
-    setMensagens((m) => [...m, { id: proximoId(), autor: "professora", texto: daProfessora }]);
-    setDigitando(true);
+  // atalho vindo da tela Hoje ("tema=agua")
+  const usouTema = useRef(false);
+  useEffect(() => {
+    if (tema !== "agua" || !conversa || usouTema.current) return;
+    usouTema.current = true;
+    enviar("Ainda não preparei nada para o Dia da Água. Me ajuda?");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tema, conversa]);
+
+  function enviar(texto: string) {
+    const alvo = conversa ?? criarConversa();
+    if (!conversa) setConversaId(alvo.id);
+    adicionarMensagem(alvo.id, { autor: "professora", texto });
+    if (alvo.mensagens.filter((m) => m.autor === "professora").length === 0) {
+      renomearConversa(alvo.id, texto.length > 38 ? `${texto.slice(0, 38)}…` : texto);
+    }
+    setPensando(true);
+    const resposta = responder(texto, contexto);
     window.setTimeout(() => {
-      setDigitando(false);
-      setMensagens((m) => [...m, { id: proximoId(), autor: "assistente", ...resposta }]);
-    }, 750);
+      adicionarMensagem(alvo.id, {
+        autor: "assistente",
+        texto: resposta.texto,
+        ...(resposta.sugestao ? { sugestao: resposta.sugestao } : {}),
+      });
+      setPensando(false);
+    }, 850);
   }
 
-  function marcar(acao: string) {
-    setFeitas((f) => [...f, acao]);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [conversa?.id, pensando]);
+
+  function submeter(_m: unknown, e: React.FormEvent) {
+    e.preventDefault();
+    const texto = rascunho.trim();
+    if (!texto || pensando) return;
+    setRascunho("");
+    enviar(texto);
   }
 
-  function sugerir() {
-    setEtapa("proposta");
-    conversar("Sim, por favor. Preciso de algo para o Dia da Água.", {
-      texto: `Pensei nesta proposta, seguindo o projeto "${projeto?.tema ?? "Água e vida"}" e usando só materiais que você já tem na sala:`,
-      cartao: sugestaoAgua,
-      nota: "Se quiser, eu encurto, troco os materiais ou deixo mais tranquila.",
-    });
-  }
-
-  function encurtar() {
-    marcar("curta");
-    const nova: Atividade = {
-      ...proposta,
-      duracao: 30,
-      passos: proposta.passos.filter((_, i) => i !== 4),
-      adaptacoes: [...proposta.adaptacoes, "Versão de 30 minutos: o mural fica para a semana seguinte."],
-    };
-    setProposta(nova);
-    conversar("Pode deixar em 30 minutos?", {
-      texto: "Claro. Tirei a montagem do mural e ajustei o fechamento. Ficou em 30 minutos:",
-      cartao: nova,
-    });
-  }
-
-  function simplificarMateriais() {
-    marcar("materiais");
-    const nova: Atividade = {
-      ...proposta,
-      materiais: ["Bacia com água", "Copos plásticos", "Papel sulfite", "Giz de cera"],
-    };
-    setProposta(nova);
-    conversar("Estou sem caixa de som nessa sexta.", {
-      texto: "Sem problema: troquei a música por uma história contada por você. Materiais atualizados:",
-      cartao: nova,
-    });
-  }
-
-  function acalmar() {
-    marcar("calma");
-    const nova: Atividade = {
-      ...proposta,
-      organizacao: "Pequenos grupos",
-      adaptacoes: [
-        ...proposta.adaptacoes,
-        "Miguel e Théo podem começar observando de perto, sem precisar mexer na água.",
-      ],
-    };
-    setProposta(nova);
-    conversar("Tenho duas crianças que se agitam com água.", {
-      texto:
-        "Deixei em pequenos grupos, com rodízio de 8 minutos, e incluí uma adaptação para o Miguel e o Théo começarem observando.",
-      cartao: nova,
-    });
-  }
+  const vazia = (conversa?.mensagens.length ?? 0) <= 1;
 
   return (
-    <AppShell titulo="Assistente" subtitulo={`${professora.turma} · ${professora.idade} · ${professora.periodo}`}>
-      <div className="space-y-4">
-        <div className="no-print flex items-start gap-2 rounded-2xl border border-border bg-agua-suave/60 p-3.5 text-sm">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <p className="text-muted-foreground">
-            O assistente já conhece a sua turma, a rotina, o projeto do mês e as atividades que você guardou.
-            Nada é salvo sem você confirmar.
-          </p>
-        </div>
-
-        {mensagens.map((m) => (
-          <div key={m.id} className={m.autor === "professora" ? "flex justify-end" : ""}>
-            <div className={m.autor === "professora" ? "max-w-[85%]" : "w-full"}>
-              {m.autor === "assistente" ? (
-                <div className="flex items-start gap-2">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
-                    <Sparkles className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 pt-1">
-                    <p className="text-[0.98rem] leading-relaxed">{m.texto}</p>
-                    {m.nota ? <p className="mt-1 text-xs text-muted-foreground">{m.nota}</p> : null}
-                  </div>
-                </div>
-              ) : (
-                <p className="rounded-2xl bg-primary px-4 py-2.5 text-[0.95rem] text-primary-foreground">
-                  {m.texto}
-                </p>
-              )}
-              {m.cartao ? <CartaoProposta atividade={m.cartao} /> : null}
-            </div>
-          </div>
-        ))}
-
-        {digitando ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/20">
-              <Sparkles className="h-4 w-4 text-primary" />
-            </span>
-            escrevendo...
-          </div>
-        ) : null}
-
-        <div className="no-print flex flex-wrap gap-2 pt-2">
-          {etapa === "inicio" ? (
-            <>
-              <Acao onClick={sugerir}>
-                {contextoAgua ? "Sugerir atividade para o Dia da Água" : "Preciso de uma atividade nova"}
-              </Acao>
-              <Link
-                to="/atividades"
-                className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium"
-              >
-                Buscar no que já criei
-              </Link>
-            </>
-          ) : null}
-          {etapa !== "inicio" ? (
-            <>
-              {!feitas.includes("curta") ? <Acao onClick={encurtar}>Deixar mais curta (30 min)</Acao> : null}
-              {!feitas.includes("materiais") ? (
-                <Acao onClick={simplificarMateriais}>Usar só o que eu tenho</Acao>
-              ) : null}
-              {!feitas.includes("calma") ? (
-                <Acao onClick={acalmar}>Adaptar para crianças mais agitadas</Acao>
-              ) : null}
-              <Acao onClick={() => setSalvando(true)} destaque>
-                Salvar no planejamento
-              </Acao>
-            </>
-          ) : null}
-        </div>
-
-        <div ref={fim} />
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!texto.trim()) return;
-            conversar(texto, {
-              texto:
-                etapa === "inicio"
-                  ? "Posso montar uma proposta a partir disso. Toque em uma das opções acima que eu preparo."
-                  : "Anotei! Posso ajustar o tempo, os materiais, a organização da turma ou salvar no planejamento.",
-            });
-            setTexto("");
-          }}
-          className="no-print sticky bottom-20 flex items-center gap-2 rounded-2xl border border-border bg-card p-2 lg:bottom-4"
+    <AppShell titulo="Assistente" subtitulo="Escreva do seu jeito, eu ajudo a organizar">
+      <div className="mx-auto flex w-full max-w-6xl gap-6 px-4 py-4">
+        {/* lista de conversas */}
+        <aside
+          className={`${
+            listaAberta ? "block" : "hidden"
+          } fixed inset-0 z-40 bg-background/95 p-4 lg:static lg:z-auto lg:block lg:w-64 lg:shrink-0 lg:bg-transparent lg:p-0`}
         >
-          <input
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            placeholder="Escreva para o assistente..."
-            className="w-full bg-transparent px-3 py-2 text-base outline-none"
-          />
+          <div className="flex items-center justify-between lg:hidden">
+            <p className="font-display text-lg font-semibold">Suas conversas</p>
+            <button onClick={() => setListaAberta(false)} className="text-sm font-semibold text-primary">
+              Fechar
+            </button>
+          </div>
           <button
-            type="submit"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground"
-            aria-label="Enviar"
+            onClick={() => {
+              const nova = criarConversa();
+              setConversaId(nova.id);
+              setListaAberta(false);
+            }}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground lg:mt-0"
           >
-            <Send className="h-4 w-4" />
+            <MessageSquarePlus className="h-4 w-4" /> Nova conversa
           </button>
-        </form>
+          <ul className="mt-3 space-y-1">
+            {conversas.map((c) => (
+              <li
+                key={c.id}
+                className={`flex items-center gap-1 rounded-xl px-2 ${
+                  c.id === conversa?.id ? "bg-secondary" : ""
+                }`}
+              >
+                <button
+                  onClick={() => {
+                    setConversaId(c.id);
+                    setListaAberta(false);
+                  }}
+                  className="min-w-0 flex-1 truncate py-2.5 text-left text-sm"
+                >
+                  {c.titulo}
+                </button>
+                <button
+                  onClick={() => {
+                    removerConversa(c.id);
+                    if (c.id === conversa?.id) setConversaId(null);
+                  }}
+                  aria-label="Apagar conversa"
+                  className="p-1.5 text-muted-foreground"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        {/* chat */}
+        <section className="flex min-w-0 flex-1 flex-col rounded-3xl border border-border bg-card">
+          <header className="flex items-center gap-2 border-b border-border px-4 py-3">
+            <button
+              onClick={() => setListaAberta(true)}
+              className="rounded-lg p-1.5 lg:hidden"
+              aria-label="Ver conversas"
+            >
+              <PanelLeft className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <p className="truncate font-display font-semibold">{conversa?.titulo ?? "Conversa"}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {professora.turma} · {criancas.length} crianças de 4 anos
+              </p>
+            </div>
+          </header>
+
+          <Conversation className="min-h-[46vh] flex-1">
+            <ConversationContent className="gap-5 px-4 py-4">
+              {conversa?.mensagens.map((m) => (
+                <Message key={m.id} from={m.autor === "professora" ? "user" : "assistant"}>
+                  <MessageContent>
+                    <MessageResponse>{m.texto}</MessageResponse>
+                    {m.sugestao ? (
+                      <CartaoAtividade
+                        atividade={m.sugestao}
+                        onAgendar={() => {
+                          salvarAtividade(m.sugestao as Atividade);
+                          setAgendando(m.sugestao as Atividade);
+                        }}
+                        onSalvar={() => salvarAtividade(m.sugestao as Atividade)}
+                      />
+                    ) : null}
+                  </MessageContent>
+                </Message>
+              ))}
+              {pensando ? (
+                <Message from="assistant">
+                  <MessageContent>
+                    <Shimmer>Pensando...</Shimmer>
+                  </MessageContent>
+                </Message>
+              ) : null}
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+
+          {vazia && !pensando ? (
+            <div className="flex flex-wrap gap-2 px-4 pb-2">
+              {sugestoesIniciais.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => enviar(s)}
+                  className="rounded-full border border-border px-3 py-1.5 text-xs font-medium"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="border-t border-border p-3">
+            <PromptInput onSubmit={submeter}>
+              <PromptInputTextarea
+                ref={inputRef}
+                value={rascunho}
+                onChange={(e) => setRascunho(e.target.value)}
+                placeholder="Escreva aqui o que você precisa…"
+              />
+              <PromptInputFooter className="justify-end">
+                <PromptInputSubmit
+                  status={pensando ? "submitted" : "ready"}
+                  disabled={!rascunho.trim() || pensando}
+                />
+              </PromptInputFooter>
+            </PromptInput>
+          </div>
+        </section>
       </div>
 
-      <AgendarDialog
-        atividade={proposta}
-        aberto={salvando}
-        onFechar={() => setSalvando(false)}
-        dataSugerida={DATA_AGUA}
-      />
+      {agendando ? (
+        <AgendarDialog
+          atividade={agendando}
+          aberto
+          onFechar={() => setAgendando(null)}
+          dataSugerida={contexto.diasSemAtividade[0]?.data ?? HOJE_ISO}
+        />
+      ) : null}
     </AppShell>
   );
 }
 
-function Acao({
-  children,
-  onClick,
-  destaque,
+function CartaoAtividade({
+  atividade,
+  onAgendar,
+  onSalvar,
 }: {
-  children: React.ReactNode;
-  onClick: () => void;
-  destaque?: boolean;
+  atividade: Atividade;
+  onAgendar: () => void;
+  onSalvar: () => void;
 }) {
+  const [salvo, setSalvo] = useState(false);
   return (
-    <button
-      onClick={onClick}
-      className={`rounded-full px-4 py-2 text-sm font-medium ${
-        destaque ? "bg-primary text-primary-foreground" : "border border-border bg-card"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function CartaoProposta({ atividade }: { atividade: Atividade }) {
-  return (
-    <div className="ml-10 mt-3 rounded-2xl border border-border bg-card p-4">
-      <h3 className="font-display text-lg font-semibold">{atividade.titulo}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{atividade.objetivo}</p>
-      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
+    <div className="mt-2 w-full rounded-2xl border border-border bg-background p-4">
+      <p className="font-display text-base font-semibold">{atividade.titulo}</p>
+      <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1">
           <Clock className="h-3.5 w-3.5" /> {atividade.duracao} min
         </span>
-        <span className="flex items-center gap-1">
+        <span className="inline-flex items-center gap-1">
           <Users className="h-3.5 w-3.5" /> {atividade.organizacao}
         </span>
-        <span className="flex items-center gap-1">
-          <MapPin className="h-3.5 w-3.5" /> {atividade.espaco}
-        </span>
-        <span>{campoCurto[atividade.campo]}</span>
       </div>
-      <ol className="mt-3 space-y-1.5 text-sm">
-        {atividade.passos.map((p, i) => (
-          <li key={p} className="flex gap-2">
-            <span className="text-muted-foreground">{i + 1}.</span>
-            {p}
+      <p className="mt-2 text-sm text-muted-foreground">{atividade.objetivo}</p>
+      <ol className="mt-3 space-y-1 text-sm">
+        {atividade.passos.slice(0, 4).map((p, i) => (
+          <li key={i} className="flex gap-2">
+            <span className="font-semibold text-primary">{i + 1}.</span> {p}
           </li>
         ))}
       </ol>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {atividade.materiais.map((m) => (
-          <span key={m} className="rounded-full bg-folha-suave px-2.5 py-1 text-xs">
-            {m}
-          </span>
-        ))}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          onClick={onAgendar}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+        >
+          <CalendarPlus className="h-3.5 w-3.5" /> Salvar na semana
+        </button>
+        <button
+          onClick={() => {
+            onSalvar();
+            setSalvo(true);
+          }}
+          className="rounded-xl border border-border px-3 py-2 text-xs font-semibold"
+        >
+          {salvo ? "Guardada ✓" : "Guardar nas atividades"}
+        </button>
+        <Link
+          to="/folha/$id"
+          params={{ id: atividade.id }}
+          onClick={onSalvar}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold"
+        >
+          <Download className="h-3.5 w-3.5" /> Folha para imprimir
+        </Link>
       </div>
-      {atividade.adaptacoes.length ? (
-        <details className="mt-3 rounded-xl bg-background p-3 text-sm">
-          <summary className="cursor-pointer font-medium">Adaptações ({atividade.adaptacoes.length})</summary>
-          <ul className="mt-2 space-y-1.5 text-muted-foreground">
-            {atividade.adaptacoes.map((a) => (
-              <li key={a}>• {a}</li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
     </div>
   );
 }
