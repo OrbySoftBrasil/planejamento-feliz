@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   CalendarRange,
   Check,
+  Copy,
   ChevronLeft,
   ChevronRight,
   Circle,
@@ -106,7 +107,7 @@ function Planejamento() {
 /* --------------------------------------------------------------- semana */
 
 function Semana({ inicio, setInicio }: { inicio: string; setInicio: (v: string) => void }) {
-  const { slotsDaSemana, atividadePorId, alterarStatus } = usePlanner();
+  const { slotsDaSemana, atividadePorId, alterarStatus, agendar, adicionarSlotLivre } = usePlanner();
   const [edicao, setEdicao] = useState<{ data: string; momento: Momento } | null>(null);
   const dias = diasUteis(inicio);
   const slots = slotsDaSemana(inicio);
@@ -123,6 +124,21 @@ function Semana({ inicio, setInicio }: { inicio: string; setInicio: (v: string) 
 
   const achar = (data: string, momento: Momento) =>
     slots.find((s) => s.data === data && s.momento === momento);
+
+  function copiarSemanaPassada() {
+    const anteriores = slotsDaSemana(addDias(inicio, -7)).filter((s) => s.tipo !== "rotina");
+    if (anteriores.length === 0) {
+      toast.error("A semana passada está vazia.");
+      return;
+    }
+    anteriores.forEach((s) => {
+      const data = addDias(s.data, 7);
+      const atividade = atividadePorId(s.atividadeId);
+      if (atividade) agendar({ atividade, data, momento: s.momento });
+      else adicionarSlotLivre({ data, momento: s.momento, titulo: s.titulo });
+    });
+    toast.success("Copiei a semana passada para cá. Ajuste o que quiser.");
+  }
 
   return (
     <div className="space-y-5">
@@ -149,6 +165,22 @@ function Semana({ inicio, setInicio }: { inicio: string; setInicio: (v: string) 
         >
           <ChevronRight className="h-5 w-5" />
         </button>
+      </div>
+
+      <div className="no-print flex flex-wrap gap-2">
+        <button
+          onClick={copiarSemanaPassada}
+          className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold"
+        >
+          <Copy className="h-4 w-4" /> Copiar a semana passada
+        </button>
+        <Link
+          to="/plano-mes/$mes"
+          params={{ mes: `${parseISO(inicio).getFullYear()}-${String(parseISO(inicio).getMonth() + 1).padStart(2, "0")}` }}
+          className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold"
+        >
+          Editar o plano do mês
+        </Link>
       </div>
 
       <div className="no-print grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -557,7 +589,10 @@ function Mes({ irParaSemana }: { irParaSemana: (inicio: string) => void }) {
   const doMes = slots.filter((s) => parseISO(s.data).getMonth() + 1 === plano.mes);
   const atividadesMes = doMes.map((s) => atividadePorId(s.atividadeId)).filter(Boolean);
   const semanas = Array.from(new Set(doMes.map((s) => inicioDaSemana(s.data)))).sort();
-  const proximoMes = `${plano.ano}-${String(plano.mes + 1).padStart(2, "0")}`;
+  const proximoMes =
+    plano.mes === 12
+      ? `${plano.ano + 1}-01`
+      : `${plano.ano}-${String(plano.mes + 1).padStart(2, "0")}`;
   const esteMes = `${plano.ano}-${String(plano.mes).padStart(2, "0")}`;
 
   return (
