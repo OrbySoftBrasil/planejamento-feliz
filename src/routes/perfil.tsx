@@ -117,15 +117,108 @@ function Perfil() {
         <section className="rounded-3xl border border-border bg-card p-5">
           <h2 className="font-display text-lg font-semibold">Materiais em falta na escola</h2>
           <div className="mt-3 flex flex-wrap gap-2">
-            {professora.materiaisEmFalta.map((m) => (
-              <span key={m} className="rounded-full bg-coral-suave px-3 py-1.5 text-sm">
-                {m}
-              </span>
-            ))}
+            {materiais
+              .filter((m) => m.status === "preciso")
+              .map((m) => (
+                <span key={m.id} className="rounded-full bg-coral-suave px-3 py-1.5 text-sm">
+                  {m.nome}
+                </span>
+              ))}
+            {materiais.every((m) => m.status !== "preciso") ? (
+              <span className="text-sm text-muted-foreground">Nada faltando agora.</span>
+            ) : null}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
             O assistente evita sugerir atividades que dependam desses materiais.
           </p>
+          <Link
+            to="/materiais"
+            className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+          >
+            Editar a lista de materiais <ChevronRight className="h-4 w-4" />
+          </Link>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-5">
+          <h2 className="font-display text-lg font-semibold">Modelo de folha da escola</h2>
+          <p className="text-sm text-muted-foreground">
+            Vale para todas as atividades ilustradas que você baixar ou imprimir.
+          </p>
+
+          <div className="mt-4 space-y-3">
+            <label className="block text-sm font-semibold">
+              Nome da escola
+              <input
+                value={modeloEscola.escola}
+                onChange={(e) => atualizarModelo({ escola: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-normal"
+              />
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-sm font-semibold">
+                Marca d'água
+                <input
+                  value={modeloEscola.marcaDagua}
+                  onChange={(e) => atualizarModelo({ marcaDagua: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-normal"
+                />
+              </label>
+              <label className="block text-sm font-semibold">
+                Sigla do logo
+                <input
+                  value={modeloEscola.logoTexto}
+                  maxLength={3}
+                  onChange={(e) => atualizarModelo({ logoTexto: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-normal"
+                />
+              </label>
+            </div>
+            <label className="block text-sm font-semibold">
+              Rodapé
+              <input
+                value={modeloEscola.rodape}
+                onChange={(e) => atualizarModelo({ rodape: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm font-normal"
+              />
+            </label>
+
+            <div>
+              <p className="text-sm font-semibold">Campos na folha</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {([
+                  ["mostrarNome", "Nome da criança"],
+                  ["mostrarTurma", "Turma"],
+                  ["mostrarData", "Data"],
+                ] as const).map(([chave, rotulo]) => (
+                  <button
+                    key={chave}
+                    onClick={() => atualizarModelo({ [chave]: !modeloEscola[chave] })}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                      modeloEscola[chave] ? "bg-primary text-primary-foreground" : "border border-border"
+                    }`}
+                  >
+                    {rotulo}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold">Cor da borda</p>
+              <div className="mt-2 flex gap-2">
+                {(["agua", "sol", "folha", "coral"] as const).map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => atualizarModelo({ cor: c })}
+                    aria-label={`Cor ${c}`}
+                    className={`h-9 w-9 rounded-full border-2 ${
+                      modeloEscola.cor === c ? "border-foreground" : "border-transparent"
+                    } bg-${c}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-5">
