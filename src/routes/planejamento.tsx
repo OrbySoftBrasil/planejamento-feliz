@@ -29,8 +29,6 @@ import {
   nomeDia,
   nomeMes,
   parseISO,
-  planoAnual,
-  planosMensais,
   type Momento,
   type Slot,
 } from "@/data/mock";
@@ -112,6 +110,7 @@ function Semana({ inicio, setInicio }: { inicio: string; setInicio: (v: string) 
   const [edicao, setEdicao] = useState<{ data: string; momento: Momento } | null>(null);
   const dias = diasUteis(inicio);
   const slots = slotsDaSemana(inicio);
+  const { planosMensais } = usePlanner();
   const mes = planosMensais.find((p) => p.mes === parseISO(inicio).getMonth() + 1);
 
   const atividadesDaSemana = slots
@@ -252,12 +251,20 @@ function Semana({ inicio, setInicio }: { inicio: string; setInicio: (v: string) 
               <li className="text-sm text-muted-foreground">Nenhuma atividade planejada ainda.</li>
             ) : null}
           </ul>
-          <button
-            onClick={() => window.print()}
-            className="no-print mt-4 inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"
-          >
-            <Printer className="h-4 w-4" /> Imprimir a semana
-          </button>
+          <div className="no-print mt-4 flex flex-wrap gap-2">
+            <Link
+              to="/materiais"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Editar lista de materiais
+            </Link>
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"
+            >
+              <Printer className="h-4 w-4" /> Imprimir a semana
+            </button>
+          </div>
         </div>
       </div>
 
@@ -525,13 +532,33 @@ function EditorSlot({
 /* ------------------------------------------------------------------ mês */
 
 function Mes({ irParaSemana }: { irParaSemana: (inicio: string) => void }) {
-  const [indice, setIndice] = useState(planosMensais.findIndex((p) => p.mes === 3));
-  const plano = planosMensais[Math.max(0, indice)]!;
-  const { slots, atividadePorId } = usePlanner();
+  const { slots, atividadePorId, planosMensais } = usePlanner();
+  const [indice, setIndice] = useState(() => {
+    const i = planosMensais.findIndex((p) => p.mes === 3);
+    return i < 0 ? 0 : i;
+  });
+  const plano = planosMensais[Math.min(indice, Math.max(0, planosMensais.length - 1))];
+
+  if (!plano) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-center">
+        <p className="text-sm text-muted-foreground">Você ainda não tem nenhum mês montado.</p>
+        <Link
+          to="/plano-mes/$mes"
+          params={{ mes: "2026-03" }}
+          className="mt-3 inline-block rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          Montar um mês
+        </Link>
+      </div>
+    );
+  }
 
   const doMes = slots.filter((s) => parseISO(s.data).getMonth() + 1 === plano.mes);
   const atividadesMes = doMes.map((s) => atividadePorId(s.atividadeId)).filter(Boolean);
   const semanas = Array.from(new Set(doMes.map((s) => inicioDaSemana(s.data)))).sort();
+  const proximoMes = `${plano.ano}-${String(plano.mes + 1).padStart(2, "0")}`;
+  const esteMes = `${plano.ano}-${String(plano.mes).padStart(2, "0")}`;
 
   return (
     <div className="space-y-4">
