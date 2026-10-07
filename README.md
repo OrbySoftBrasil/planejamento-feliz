@@ -40,15 +40,8 @@ Não crie backend, autenticação real ou integrações externas. Use dados mock
 
 Não crie uma landing page comercial. Comece diretamente pela aplicação já autenticada.
 
-This project was built with [Lovable](https://lovable.dev).
 
-## Build with Lovable
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/10ac57b0-2fe8-41c0-b4d7-ca91419944a6).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
